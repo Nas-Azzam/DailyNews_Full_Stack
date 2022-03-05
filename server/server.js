@@ -4,6 +4,13 @@ const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 require('dotenv').config();
 
+// Routes
+const userRoute = require('./routes/api/users');
+
+// Middle wares
+app.use(bodyParser.json());
+app.use('/api/users', userRoute);
+
 const mongoUri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@${process.env.DB_HOST}retryWrites=true&w=majority`;
 mongoose.connect(mongoUri, {
   useNewUrlParser: true,
@@ -12,9 +19,7 @@ mongoose.connect(mongoUri, {
   useFindAndModify: false,
 });
 
-app.use(bodyParser.json());
-
-const port = process.env.PORT || 3001;
+const port = process.env.PORT || 1001;
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
 });
