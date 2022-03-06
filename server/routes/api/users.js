@@ -30,6 +30,19 @@ router.route('/register').post(async (req, res) => {
   }
 });
 
+router.route('/Signin').post(async (req, res) => {
+  try {
+    //  Finf user
+    let user = await User.findOne({ email: req.body.email });
+
+    // compare Pawsword
+
+    // generate token
+
+    // send response
+  } catch (error) {}
+});
+
 const getUserProps = (savedUser) => {
   return {
     _id: savedUser._id,
