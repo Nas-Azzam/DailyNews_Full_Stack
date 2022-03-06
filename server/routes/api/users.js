@@ -1,56 +1,69 @@
 const express = require('express');
 let router = express.Router();
 require('dotenv').config();
+const { checkLoggedIn } = require('../../middleware/auth');
 
 const { User } = require('../../models/user_model');
 
 router.route('/register').post(async (req, res) => {
   try {
-    // 1 chenk if email is taken
+    ///1 check if email taken
     if (await User.emailTaken(req.body.email)) {
-      return res.status(400).json({
-        error: 'Email is already taken',
-      });
+      return res.status(400).json({ message: 'Sorry email taken' });
     }
-    //  2 crate the model and hash the password
+
+    /// 2 hash password
     const user = new User({
       email: req.body.email,
       password: req.body.password,
     });
 
-    //  3 save the data to the database and generate token
-    const savedUser = await user.save();
-    const Token = savedUser.generateToken();
+    /// 3 generate token
+    const token = user.generateToken();
+    const doc = await user.save();
 
-    // 4 send the response with token and cookies
-    res.cookie('x-access-token', Token);
-    res.send(getUserProps(savedUser));
+    // 4 send email
+
+    // save...send token with cookie
+    res.cookie('x-access-token', token).status(200).send(getUserProps(doc));
   } catch (error) {
-    res.status(400).send({ error: error, message: error.message });
+    res.status(400).json({ message: 'Error', error: error });
   }
 });
 
 router.route('/Signin').post(async (req, res) => {
   try {
-    //  Finf user
+    // FIND USER
     let user = await User.findOne({ email: req.body.email });
+    if (!user) return res.status(400).json({ message: 'Bad email' });
 
-    // compare Pawsword
+    /// COMPARE PASSWORD
+    const compare = await user.comparePassword(req.body.password);
+    if (!compare) return res.status(400).json({ message: 'Bad password' });
 
-    // generate token
+    // GENERATE TOKEN
+    const token = user.generateToken();
 
-    // send response
-  } catch (error) {}
+    //RESPONSE
+    res.cookie('x-access-token', token).status(200).send(getUserProps(user));
+  } catch (error) {
+    res.status(400).json({ message: 'Error', error: error });
+  }
 });
 
-const getUserProps = (savedUser) => {
+router.route('/profile').get(checkLoggedIn, async (req, res) => {
+  console.log(req.user);
+  res.status(200).send('ok');
+});
+
+const getUserProps = (user) => {
   return {
-    _id: savedUser._id,
-    email: savedUser.email,
-    firstName: savedUser.firstName,
-    lastName: savedUser.lastName,
-    phone: savedUser.phone,
-    roles: savedUser.roles,
+    _id: user._id,
+    email: user.email,
+    firstname: user.firstname,
+    lastname: user.lastname,
+    age: user.age,
+    role: user.role,
   };
 };
 

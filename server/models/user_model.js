@@ -4,7 +4,7 @@ const jwt = require('jsonwebtoken');
 const validator = require('validator');
 require('dotenv').config();
 
-const userSchema = new mongoose.Schema(
+const userSchema = mongoose.Schema(
   {
     email: {
       type: String,
@@ -14,34 +14,32 @@ const userSchema = new mongoose.Schema(
       lowercase: true,
       validate(value) {
         if (!validator.isEmail(value)) {
-          throw new Error('Email is invalid');
+          throw new Error('Invalid email');
         }
       },
     },
     password: {
       type: String,
       required: true,
-      minlength: 7,
       trim: true,
     },
-    roles: {
+    role: {
       type: String,
       enum: ['user', 'admin'],
       default: 'user',
     },
-    firstName: {
+    firstname: {
       type: String,
-      maxlength: 30,
+      maxLength: 100,
       trim: true,
     },
-    lastName: {
+    lastname: {
       type: String,
-      maxlength: 30,
+      maxLength: 100,
       trim: true,
     },
-    phone: {
+    age: {
       type: Number,
-      trim: true,
     },
     date: {
       type: Date,
@@ -49,23 +47,21 @@ const userSchema = new mongoose.Schema(
     },
   },
   {
-    // timestamp: true,
-    // collection: 'usersasda',
+    //   timestamps:true
+    //   collection: "player"
   }
 );
 
-// model for hashing password
 userSchema.pre('save', async function (next) {
   let user = this;
   if (user.isModified('password')) {
-    // hash the password
     const salt = await bcrypt.genSalt(10);
     const hash = await bcrypt.hash(user.password, salt);
     user.password = hash;
   }
   next();
 });
-// model for token
+
 userSchema.methods.generateToken = function () {
   let user = this;
   const userObj = { _id: user._id.toHexString(), email: user.email };
@@ -73,8 +69,12 @@ userSchema.methods.generateToken = function () {
   return token;
 };
 
+userSchema.methods.comparePassword = async function (candidatePassword) {
+  const user = this;
+  const match = await bcrypt.compare(candidatePassword, user.password);
+  return match;
+};
 
-// model for emal is taken
 userSchema.statics.emailTaken = async function (email) {
   const user = await this.findOne({ email });
   return !!user;
