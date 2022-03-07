@@ -52,6 +52,7 @@ const userSchema = mongoose.Schema(
   }
 );
 
+// mdel for hashing password
 userSchema.pre('save', async function (next) {
   let user = this;
   if (user.isModified('password')) {
@@ -62,6 +63,7 @@ userSchema.pre('save', async function (next) {
   next();
 });
 
+// generating token or cookie
 userSchema.methods.generateToken = function () {
   let user = this;
   const userObj = { _id: user._id.toHexString(), email: user.email };
@@ -69,12 +71,14 @@ userSchema.methods.generateToken = function () {
   return token;
 };
 
+// model for comparing password with hash password for valid user
 userSchema.methods.comparePassword = async function (candidatePassword) {
   const user = this;
   const match = await bcrypt.compare(candidatePassword, user.password);
   return match;
 };
 
+// model for already register user by email
 userSchema.statics.emailTaken = async function (email) {
   const user = await this.findOne({ email });
   return !!user;
