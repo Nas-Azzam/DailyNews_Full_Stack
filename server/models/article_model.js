@@ -1,46 +1,46 @@
-const mongooose = require('mongoose');
+const mongoose = require('mongoose');
 require('dotenv').config();
 
-const articleSchema = mongooose.Schema({
+const articleSchema = mongoose.Schema({
   title: {
     type: String,
-    required: [true, 'You need the title'],
-    maxLength: 70,
+    maxLength: 100,
+    required: [true, 'You need a title'],
   },
   content: {
     type: String,
-    required: [true, 'You need the content'],
+    required: [true, 'You need some content'],
   },
   excerpt: {
     type: String,
-    required: [true, 'You need the excerpt'],
-    maxLength: 200,
+    required: [true, 'Please add an excerpt'],
+    maxLength: 500,
   },
   score: {
     type: Number,
-    default: 0,
     min: 0,
     max: 100,
+    required: true,
   },
   director: {
     type: String,
-    required: [true, 'You need the director'],
+    required: true,
   },
   actors: {
     type: [String],
-    required: [true, 'You need the actors'],
+    required: true,
     validate: {
-      validator: function (v) {
-        return v.length >= 2;
+      validator: function (array) {
+        return array.length >= 2;
       },
-      message: 'You need at least 2 actors',
+      message: 'you must add at least three',
     },
   },
   status: {
     type: String,
-    enum: ['published', 'draft'],
+    required: true,
+    enum: ['draft', 'public'],
     default: 'draft',
-    required: [true, 'You need the status'],
     index: true,
   },
   date: {
@@ -49,5 +49,5 @@ const articleSchema = mongooose.Schema({
   },
 });
 
-const Article = mongooose.model('Article', articleSchema);
+const Article = mongoose.model('Article', articleSchema);
 module.exports = { Article };
