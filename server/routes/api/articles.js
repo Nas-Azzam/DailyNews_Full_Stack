@@ -119,6 +119,31 @@ router.route('/loadmore').post(async (req, res) => {
 });
 
 // pagination
-router.route;
+router
+  .route('/admin/paginate')
+  .post(checkLoggedIn, grantAccess('readAny', 'articles'), async (req, res) => {
+    try {
+      // let AagQurey = Article.aggregate([
+      //   {
+      //     $match: { status: 'public' },
+      //   },
+      //   {
+      //     $match: {title: {$regex: req.body.search, $options: 'i'}},
+      //   }
+      // ]);
+
+      const limit = req.body.limit ? req.body.limit : 5;
+      const AagQurey = Article.aggregate();
+      const options = {
+        page: req.body.page ? req.body.page : 1,
+        limit: limit,
+        sort: { _id: 'desc' },
+      };
+      const articles = await Article.aggregatePaginate(AagQurey, options);
+      res.status(200).json(articles);
+    } catch (error) {
+      res.status(400).json({ message: 'Error fetching articles', error });
+    }
+  });
 
 module.exports = router;
